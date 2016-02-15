@@ -477,3 +477,62 @@ tape("slab-sequence-2", function(t) {
 
   t.end()
 })
+
+tape("iterator.seek()", function(t) {
+  var arr = [0, 1, 2, 3, 5, 6]
+  var u = arr.reduce(function(u, k) {
+    return u.insert(k, k)
+  }, makeTree())
+
+  var i = u.begin
+
+  t.equals(i.key, 0)
+  t.equals(i.seek(-1).key, 0, 'target before first key')
+  t.equals(u.begin.seek(-2).key, 0, 'target before first key')
+  t.equals(i.seek(4).key, 5)
+  t.equals(i.seek(4).key, 5, 'same result')
+  t.equals(i.seek(2).key, 2)
+  t.equals(i.seek(2).key, 2, 'same result')
+  t.equals(i.seek(2, true).key, 2)
+  t.equals(i.seek(2, true).key, 2, 'same result')
+  t.equals(i.seek(6).key, 6)
+  t.equals(i.seek(4).key, 5, 'steps forward')
+  t.equals(i.seek(4, true).key, 3, 'steps backward')
+  t.equals(i.seek(6).key, 6)
+  t.equals(i.seek(4, true).key, 3, 'steps backward')
+  t.equals(i.seek(4).key, 5, 'steps forward')
+  t.equals(i.seek(7, true).key, 6, 'rev target after last key')
+  t.equals(i.seek(8, true).key, 6, 'rev target after last key')
+  t.equals(i.seek(7).key, undefined, 'past last key')
+  t.equals(i.seek(4).key, undefined, 'not seekable anymore')
+
+  t.equals(u.begin.seek(-1).key, 0, 'target before first key')
+  t.equals(u.begin.seek(-2).key, 0, 'target before first key')
+  t.equals(u.begin.seek(-2, true).key, undefined, 'rev target before first key')
+  t.equals(u.begin.seek(-1, true).key, undefined, 'rev target before first key')
+  t.equals(u.begin.seek(0).key, 0)
+  t.equals(u.begin.seek(0, true).key, 0)
+  t.equals(u.begin.seek(4).key, 5, 'steps forward')
+  t.equals(u.begin.seek(4, true).key, 3, 'steps backward')
+  t.equals(u.begin.seek(6).key, 6)
+  t.equals(u.begin.seek(6, true).key, 6)
+  t.equals(u.begin.seek(7).key, undefined)
+  t.equals(u.begin.seek(7, true).key, 6, 'rev target after last key')
+  t.equals(u.begin.seek(8, true).key, 6, 'rev target after last key')
+
+  t.equals(u.end.seek(-1).key, 0, 'target before first key')
+  t.equals(u.end.seek(-2).key, 0, 'target before first key')
+  t.equals(u.end.seek(-2, true).key, undefined, 'rev target before first key')
+  t.equals(u.end.seek(-1, true).key, undefined, 'rev target before first key')
+  t.equals(u.end.seek(0).key, 0)
+  t.equals(u.end.seek(0, true).key, 0)
+  t.equals(u.end.seek(4).key, 5, 'steps forward')
+  t.equals(u.end.seek(4, true).key, 3, 'steps backward')
+  t.equals(u.end.seek(6).key, 6)
+  t.equals(u.end.seek(6, true).key, 6)
+  t.equals(u.end.seek(7).key, undefined)
+  t.equals(u.end.seek(7, true).key, 6, 'rev target after last key')
+  t.equals(u.end.seek(8, true).key, 6, 'rev target after last key')
+
+  t.end()
+})

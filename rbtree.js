@@ -979,6 +979,87 @@ Object.defineProperty(iproto, "hasPrev", {
   }
 })
 
+//Seek to the first item on or after a target key
+//or if reverse is true, on or before a target key
+iproto.seek = function(target, reverse) {
+  var cmp = this.tree._compare
+  var stack = this._stack
+  var length = stack.length
+  if(!length) return this
+
+  //Find out in which direction to move
+  var d = cmp(target, stack[length-1].key)
+  if(d === 0) return this
+
+  var fwd  = d>0
+  var move = fwd ? 'next' : 'prev'
+  var undo = fwd ? 'prev' : 'next'
+  var land = fwd ? reverse : !reverse
+  var clone = this.clone()
+
+  this[move]()
+
+  while(length = stack.length) {
+    d = cmp(target, stack[length-1].key)
+    if(d === 0) return this
+    else if(fwd ? d < 0 : d > 0) {
+      //Land before or after
+      if(land) this[undo]()
+      return this
+    }
+
+    this[move]()
+  }
+
+  //If past end or before begin, step back or forward
+  if(fwd && reverse) this.seekToLast()
+  else if(!fwd && !reverse) this.seekToFirst()
+
+  return this
+}
+
+iproto.seekToFirst = function() {
+  this._stack = this.tree.begin._stack
+  return this
+}
+
+iproto.seekToLast = function() {
+  this._stack = this.tree.end._stack
+  return this
+}
+
+//Seek backward to the first item on or before a target key
+iproto.seekBackward = function(target) {
+  var cmp = this.tree._compare
+  var stack = this._stack
+  var length;
+
+  while(length = stack.length) {
+    var n = stack[length-1]
+    if(cmp(n.key, target) <= 0) return this
+    this.prev()
+  }
+
+  this._stack = []
+  return this
+}
+
+//Seek forward to the first item on or after a target key
+iproto.seekForward = function(target) {
+  var cmp = this.tree._compare
+  var stack = this._stack
+  var length;
+
+  while(length = stack.length) {
+    var n = stack[length-1]
+    if(cmp(n.key, target) >= 0) return this
+    this.next()
+  }
+
+  this._stack = []
+  return this
+}
+
 //Default comparison function
 function defaultCompare(a, b) {
   if(a < b) {
