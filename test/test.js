@@ -258,6 +258,46 @@ tape("update()", function(t) {
   t.end()
 })
 
+tape("upsert()", function(t) {
+  var u = makeTree()
+  t.ok(u.upsert === u.set, 'aliased as set()')
+
+  //Test update
+  u=u.insert(0, 'a')
+  u=u.insert(0, 'b')
+  t.same(u.keys, [0,0])
+  t.equals(u.get(0), 'a')
+  u=u.upsert(0, 'c')
+  t.same(u.keys, [0,0])
+  t.equals(u.get(0), 'c')
+
+  //Test insert
+  u=u.upsert(1, 'd')
+  t.same(u.keys, [0,0,1])
+  t.equals(u.get(1), 'd')
+  u=u.upsert(1, 'd2')
+  t.same(u.keys, [0,0,1])
+  t.equals(u.get(1), 'd2')
+
+  //Test remove
+  u=u.upsert(1, undefined)
+  u=u.upsert(3, undefined)
+  t.same(u.keys, [0,0], 'keys ok')
+  t.equals(u.get(1), undefined)
+
+  //Test update with value equality
+  u=u.upsert(2, '0')
+  t.same(u.keys, [0,0,2])
+  t.equals(u.get(2), '0')
+  var u2=u.upsert(2, '0')
+  var u3=u.upsert(2, 0)
+  t.ok(u2 === u, 'no mutation')
+  t.ok(u3 !== u, 'mutated')
+  t.equals(u2.get(2), '0')
+  t.equals(u3.get(2), 0)
+
+  t.end()
+})
 
 tape("keys and values", function(t) {
 

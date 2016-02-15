@@ -465,11 +465,19 @@ proto.find = function(key) {
 
 //Removes item with key from tree
 proto.remove = function(key) {
+  return this.find(key).remove()
+}
+
+//Inserts, updates or removes item in tree
+proto.upsert = proto.set = function(key, value) {
   var iter = this.find(key)
-  if(iter) {
-    return iter.remove()
+  if(value === undefined) {
+    return iter.valid ? iter.remove() : this
+  } else if(iter.valid) {
+    return iter.value === value ? this : iter.update(value)
+  } else {
+    return this.insert(key, value)
   }
-  return this
 }
 
 //Returns the item at `key`
